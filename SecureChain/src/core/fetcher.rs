@@ -81,13 +81,13 @@ impl ContractFetcher {
     pub async fn fetch_contracts(
         &self,
         source: &str,
-        query: &str,
+        address: &str,
         network: &str,
     ) -> Result<Vec<ContractInfo>> {
         match source {
-            "etherscan" => self.fetch_from_etherscan(query, network).await,
-            "github" => self.fetch_from_github(query).await,
-            "local" => self.fetch_from_local(query).await,
+            "etherscan" => self.fetch_from_etherscan(address, network).await,
+            "github" => self.fetch_from_github(address).await,
+            "local" => self.fetch_from_local(address).await,
             _ => Err(anyhow!("Unsupported source: {}", source)),
         }
     }

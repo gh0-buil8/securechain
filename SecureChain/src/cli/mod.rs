@@ -5,4 +5,5 @@
 
 pub mod commands;
 
-pub use commands::{Cli, execute_command};
+// Re-exports available when needed
+// pub use commands::{Cli, execute_command};

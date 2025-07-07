@@ -425,6 +425,19 @@ This vulnerability could potentially lead to [describe specific impact based on 
         self.generate_markdown_report(&report)
     }
 
+    /// Generate a report in the specified format (for backward compatibility)
+    pub fn generate_report(&self, results: &AnalysisResults, format: &str) -> Result<String> {
+        match format {
+            "markdown" => self.generate_markdown_report_from_results(results),
+            "json" => Ok(serde_json::to_string_pretty(results)?),
+            "html" => {
+                let report = self.create_comprehensive_report(results, true)?;
+                self.generate_html_report(&report)
+            },
+            _ => self.generate_markdown_report_from_results(results),
+        }
+    }
+
     /// Load analysis results from file
     fn load_analysis_results(&self, path: &Path) -> Result<AnalysisResults> {
         let content = std::fs::read_to_string(path)?;
