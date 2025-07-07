@@ -388,46 +388,46 @@ async fn handle_scan(
 ) -> Result<()> {
     println!("🚀 {} Quick Comprehensive Scan", "Starting".bright_green());
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    
+
     let start_time = std::time::Instant::now();
-    
+
     // Auto-create output directory with timestamp
     let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
     let output_dir = PathBuf::from(format!("scan_results_{}", timestamp));
     std::fs::create_dir_all(&output_dir)?;
-    
+
     println!("📁 Results will be saved to: {}", output_dir.display());
-    
+
     // Initialize components
     let plugin_manager = PluginManager::new();
     let analysis_engine = AnalysisEngine::new(config.clone(), plugin_manager);
-    
+
     // Step 1: Quick static analysis
     println!("\n{} Static Analysis", "🔍".bright_green());
     let analysis_results = analysis_engine
         .analyze_contracts(&input, &target, "deep", ai)
         .await?;
-    
+
     println!("✅ Found {} vulnerabilities", analysis_results.vulnerabilities.len());
-    
+
     // Step 2: Optional fuzzing
     if fuzz {
         println!("\n{} Fuzzing Analysis", "🎲".bright_green());
         let fuzz_engine = crate::core::fuzz_engine::FuzzEngine::new(config.clone());
         let fetcher = crate::core::fetcher::ContractFetcher::new(config.clone());
         let contracts = fetcher.fetch_from_local(input.to_str().unwrap()).await?;
-        
+
         for contract in &contracts {
             let parsed_contract = crate::core::parser::ContractParser::new()?.parse_contract(contract)?;
             let _fuzz_results = fuzz_engine.fuzz_contract(&parsed_contract).await?;
             println!("✅ Fuzzing completed for {}", contract.name);
         }
     }
-    
+
     // Step 3: Generate all reports
     println!("\n{} Generating Reports", "📄".bright_green());
     let report_generator = crate::report::generator::ReportGenerator::new(config);
-    
+
     // Generate multiple report formats
     let formats = ["markdown", "json"];
     for format in &formats {
@@ -440,18 +440,18 @@ async fn handle_scan(
         std::fs::write(&report_path, &report)?;
         println!("📄 {} report: {}", format.to_uppercase(), report_path.display());
     }
-    
+
     // Generate exploits for critical vulnerabilities
     let critical_vulns: Vec<_> = analysis_results.vulnerabilities
         .iter()
         .filter(|v| v.severity == "Critical" || v.severity == "High")
         .collect();
-    
+
     if !critical_vulns.is_empty() {
         println!("\n{} Generating Exploits", "⚡".bright_green());
         let exploit_dir = output_dir.join("exploits");
         std::fs::create_dir_all(&exploit_dir)?;
-        
+
         for (i, vulnerability) in critical_vulns.iter().enumerate() {
             let exploit_code = generate_exploit_code(vulnerability);
             let exploit_path = exploit_dir.join(format!("exploit_{}.sol", i + 1));
@@ -459,7 +459,7 @@ async fn handle_scan(
             println!("🔥 Exploit for '{}': {}", vulnerability.title, exploit_path.display());
         }
     }
-    
+
     let duration = start_time.elapsed();
     println!("\n{} Scan Summary", "📊".bright_green());
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -467,13 +467,13 @@ async fn handle_scan(
     println!("🔍 Vulnerabilities: {}", analysis_results.vulnerabilities.len());
     println!("🛡️  Security Score: {:.1}/100", analysis_results.metrics.security_score);
     println!("📁 Results: {}", output_dir.display());
-    
+
     if analysis_results.vulnerabilities.is_empty() {
         println!("🎉 {} No vulnerabilities found!", "CLEAN".bright_green());
     } else {
         println!("⚠️  {} Review the findings and fix vulnerabilities", "ACTION REQUIRED".bright_yellow());
     }
-    
+
     Ok(())
 }
 
