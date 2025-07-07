@@ -293,7 +293,7 @@ async fn handle_audit(
 
         for contract in &contracts {
             let parsed_contract = crate::core::parser::ContractParser::new()?.parse_contract(contract)?;
-            let fuzz_results = fuzz_engine.fuzz_contract(&parsed_contract).await?;
+            let _fuzz_results = fuzz_engine.fuzz_contract(&parsed_contract).await?;
 
             println!("✅ Fuzzing completed for {}", contract.name);
         }
