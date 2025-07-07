@@ -3,7 +3,7 @@
 //! This module integrates with language models to provide creative
 //! vulnerability detection and exploit hypothesis generation.
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 use crate::core::analyzer::CreativeProbe;
