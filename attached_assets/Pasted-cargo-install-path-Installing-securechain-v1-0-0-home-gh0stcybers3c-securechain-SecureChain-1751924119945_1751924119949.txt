@@ -1,0 +1,519 @@
+cargo install --path .
+  Installing securechain v1.0.0 (/home/gh0stcybers3c/securechain/SecureChain)
+    Updating crates.io index
+     Locking 229 packages to latest compatible versions
+      Adding colored v2.2.0 (available: v3.0.0)
+      Adding dirs v5.0.1 (available: v6.0.0)
+      Adding env_logger v0.10.2 (available: v0.11.8)
+      Adding reqwest v0.11.27 (available: v0.12.22)
+      Adding thiserror v1.0.69 (available: v2.0.12)
+warning: unused import: `crate::core::ai_assist::AIAssistant`
+ --> src/cli/commands.rs:1:5
+  |
+1 | use crate::core::ai_assist::AIAssistant;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused variable: `fuzz_results`
+   --> src/cli/commands.rs:274:17
+    |
+274 |             let fuzz_results = fuzz_engine.fuzz_contract(&parsed_contrac...
+    |                 ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_fuzz_results`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `config`
+   --> src/cli/commands.rs:302:5
+    |
+302 |     config: Config,
+    |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_config`                                                                            
+
+warning: field `plugin_manager` is never read
+  --> src/core/analyzer.rs:65:5
+   |
+63 | pub struct AnalysisEngine {
+   |            -------------- field in this struct
+64 |     config: Config,
+65 |     plugin_manager: PluginManager,
+   |     ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: method `generate_creative_probes` is never used
+   --> src/core/analyzer.rs:165:18
+    |
+70  | impl AnalysisEngine {
+    | ------------------- method in this implementation
+...
+165 |     pub async fn generate_creative_probes(
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: field `config` is never read
+  --> src/core/fetcher.rs:65:5
+   |
+63 | pub struct ContractFetcher {
+   |            --------------- field in this struct
+64 |     client: Client,
+65 |     config: Config,
+   |     ^^^^^^
+
+warning: multiple methods are never used
+   --> src/core/ai_assist.rs:75:18
+    |
+51  | impl AIAssistant {
+    | ---------------- methods in this implementation
+...
+75  |     pub async fn generate_creative_probes(
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+146 |     fn generate_creative_prompt(&self, contract: &ParsedContract, creati...
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+311 |     async fn generate_probes_with_openai(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+354 |     async fn generate_probes_with_anthropic(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+393 |     async fn generate_probes_with_local_llm(
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+460 |     fn parse_creative_probe_response(&self, content: &str) -> Result<Vec...
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+485 |     fn parse_probe_object(&self, probe_obj: &serde_json::Value) -> Optio...
+    |        ^^^^^^^^^^^^^^^^^^
+
+warning: fields `config` and `fuzzing_config` are never read
+  --> src/core/fuzz_engine.rs:70:5
+   |
+69 | pub struct FuzzEngine {
+   |            ---------- fields in this struct
+70 |     config: Config,
+   |     ^^^^^^
+71 |     fuzzing_config: FuzzingConfig,
+   |     ^^^^^^^^^^^^^^
+
+warning: method `convert_to_vulnerabilities` is never used
+   --> src/core/fuzz_engine.rs:339:12
+    |
+74  | impl FuzzEngine {
+    | --------------- method in this implementation
+...
+339 |     pub fn convert_to_vulnerabilities(&self, results: &FuzzingResults) -...
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `name`, `supported_languages`, `analyze_contract`, `validate_contract`, and `get_analysis_tools` are never used
+  --> src/plugins/mod.rs:20:8
+   |
+19 | pub trait BlockchainPlugin {
+   |           ---------------- methods in this trait
+20 |     fn name(&self) -> &'static str;
+   |        ^^^^
+21 |     fn supported_languages(&self) -> Vec<&'static str>;
+   |        ^^^^^^^^^^^^^^^^^^^
+22 |     fn analyze_contract(&self, contract: &ParsedContract) -> Result<Vec<V...
+   |        ^^^^^^^^^^^^^^^^
+23 |     fn validate_contract(&self, contract: &ParsedContract) -> Result<bool>;
+   |        ^^^^^^^^^^^^^^^^^
+24 |     fn get_analysis_tools(&self) -> Vec<&'static str>;
+   |        ^^^^^^^^^^^^^^^^^^
+
+warning: field `plugins` is never read
+  --> src/plugins/mod.rs:39:5
+   |
+38 | pub struct PluginManager {
+   |            ------------- field in this struct
+39 |     plugins: HashMap<String, Box<dyn BlockchainPlugin>>,
+   |     ^^^^^^^
+
+warning: methods `get_available_plugins`, `get_plugin`, `analyze_contract`, `validate_contract`, and `is_tool_available` are never used
+  --> src/plugins/mod.rs:57:12
+   |
+42 | impl PluginManager {
+   | ------------------ methods in this implementation
+...
+57 |     pub fn get_available_plugins(&self) -> Vec<PluginInfo> {
+   |            ^^^^^^^^^^^^^^^^^^^^^
+...
+72 |     pub fn get_plugin(&self, name: &str) -> Option<&Box<dyn BlockchainPlu...
+   |            ^^^^^^^^^^
+...
+77 |     pub fn analyze_contract(&self, contract: &ParsedContract, target_plat...
+   |            ^^^^^^^^^^^^^^^^
+...
+86 |     pub fn validate_contract(&self, contract: &ParsedContract, target_pla...
+   |            ^^^^^^^^^^^^^^^^^
+...
+95 |     pub fn is_tool_available(&self, platform: &str, tool: &str) -> bool {
+   |            ^^^^^^^^^^^^^^^^^
+
+warning: methods `is_mythril_available` and `is_echidna_available` are never used
+  --> src/plugins/evm.rs:37:12
+   |
+19 | impl EVMPlugin {
+   | -------------- methods in this implementation
+...
+37 |     pub fn is_mythril_available(&self) -> bool {
+   |            ^^^^^^^^^^^^^^^^^^^^
+...
+46 |     pub fn is_echidna_available(&self) -> bool {
+   |            ^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `is_move_available`, `is_move_prover_available`, `is_aptos_available`, and `is_sui_available` are never used
+  --> src/plugins/move_lang.rs:27:12
+   |
+18 | impl MovePlugin {
+   | --------------- methods in this implementation
+...
+27 |     pub fn is_move_available(&self) -> bool {
+   |            ^^^^^^^^^^^^^^^^^
+...
+36 |     pub fn is_move_prover_available(&self) -> bool {
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+45 |     pub fn is_aptos_available(&self) -> bool {
+   |            ^^^^^^^^^^^^^^^^^^
+...
+54 |     pub fn is_sui_available(&self) -> bool {
+   |            ^^^^^^^^^^^^^^^^
+
+warning: methods `is_cairo_available`, `is_starknet_available`, and `is_protostar_available` are never used
+  --> src/plugins/cairo.rs:27:12
+   |
+18 | impl CairoPlugin {
+   | ---------------- methods in this implementation
+...
+27 |     pub fn is_cairo_available(&self) -> bool {
+   |            ^^^^^^^^^^^^^^^^^^
+...
+36 |     pub fn is_starknet_available(&self) -> bool {
+   |            ^^^^^^^^^^^^^^^^^^^^^
+...
+45 |     pub fn is_protostar_available(&self) -> bool {
+   |            ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: methods `is_cargo_available` and `is_cargo_contract_available` are never used
+  --> src/plugins/ink.rs:27:12
+   |
+18 | impl InkPlugin {
+   | -------------- methods in this implementation
+...
+27 |     pub fn is_cargo_available(&self) -> bool {
+   |            ^^^^^^^^^^^^^^^^^^
+...
+36 |     pub fn is_cargo_contract_available(&self) -> bool {
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: field `config` is never read
+  --> src/report/generator.rs:92:5
+   |
+91 | pub struct ReportGenerator {
+   |            --------------- field in this struct
+92 |     config: Config,
+   |     ^^^^^^
+
+warning: methods `generate_executive_summary`, `generate_technical_report`, `generate_comprehensive_report`, `load_analysis_results`, `generate_json_report`, and `generate_pdf_report` are never used
+   --> src/report/generator.rs:102:12
+    |
+95  | impl ReportGenerator {
+    | -------------------- methods in this implementation
+...
+102 |     pub fn generate_executive_summary(
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+211 |     pub fn generate_technical_report(
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+400 |     pub async fn generate_comprehensive_report(
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+442 |     fn load_analysis_results(&self, path: &Path) -> Result<AnalysisResul...
+    |        ^^^^^^^^^^^^^^^^^^^^^
+...
+883 |     fn generate_json_report(&self, report: &ComprehensiveReport) -> Resu...
+    |        ^^^^^^^^^^^^^^^^^^^^
+...
+889 |     fn generate_pdf_report(&self, report: &ComprehensiveReport) -> Resul...
+    |        ^^^^^^^^^^^^^^^^^^^
+
+warning: associated items `typical_severity`, `description`, `mitigation_strategies`, and `all_categories` are never used
+   --> src/report/vulnerability.rs:125:12
+    |
+123 | impl VulnerabilityCategory {
+    | -------------------------- associated items in this implementation
+124 |     /// Get the typical severity level for this category
+125 |     pub fn typical_severity(&self) -> &'static str {
+    |            ^^^^^^^^^^^^^^^^
+...
+146 |     pub fn description(&self) -> &'static str {
+    |            ^^^^^^^^^^^
+...
+167 |     pub fn mitigation_strategies(&self) -> Vec<&'static str> {
+    |            ^^^^^^^^^^^^^^^^^^^^^
+...
+248 |     pub fn all_categories() -> Vec<VulnerabilityCategory> {
+    |            ^^^^^^^^^^^^^^
+
+warning: multiple associated items are never used
+   --> src/report/vulnerability.rs:271:12
+    |
+269 | impl Vulnerability {
+    | ------------------ associated items in this implementation
+270 |     /// Create a new vulnerability
+271 |     pub fn new(
+    |            ^^^
+...
+297 |     pub fn with_line_number(mut self, line_number: usize) -> Self {
+    |            ^^^^^^^^^^^^^^^^
+...
+303 |     pub fn with_code_snippet(mut self, code_snippet: String) -> Self {
+    |            ^^^^^^^^^^^^^^^^^
+...
+309 |     pub fn with_recommendation(mut self, recommendation: String) -> Self {
+    |            ^^^^^^^^^^^^^^^^^^^
+...
+315 |     pub fn with_reference(mut self, reference: String) -> Self {
+    |            ^^^^^^^^^^^^^^
+...
+321 |     pub fn with_cwe_id(mut self, cwe_id: String) -> Self {
+    |            ^^^^^^^^^^^
+...
+327 |     pub fn with_confidence(mut self, confidence: f64) -> Self {
+    |            ^^^^^^^^^^^^^^^
+...
+333 |     pub fn is_high_severity(&self) -> bool {
+    |            ^^^^^^^^^^^^^^^^
+...
+338 |     pub fn is_critical(&self) -> bool {
+    |            ^^^^^^^^^^^
+...
+343 |     pub fn severity_priority(&self) -> u8 {
+    |            ^^^^^^^^^^^^^^^^^
+...
+355 |     pub fn summary(&self) -> String {
+    |            ^^^^^^^
+...
+360 |     pub fn is_complete(&self) -> bool {
+    |            ^^^^^^^^^^^
+
+warning: associated items `all_levels` and `priority` are never used
+   --> src/report/vulnerability.rs:392:12
+    |
+390 | impl Severity {
+    | ------------- associated items in this implementation
+391 |     /// Get all severity levels
+392 |     pub fn all_levels() -> Vec<Severity> {
+    |            ^^^^^^^^^^
+...
+403 |     pub fn priority(&self) -> u8 {
+    |            ^^^^^^^^
+
+warning: function `sort_vulnerabilities` is never used
+   --> src/report/vulnerability.rs:419:12
+    |
+419 |     pub fn sort_vulnerabilities(vulnerabilities: &mut [Vulnerability]) {
+    |            ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `filter_by_severity` is never used
+   --> src/report/vulnerability.rs:439:12
+    |
+439 |     pub fn filter_by_severity<'a>(vulnerabilities: &'a [Vulnerability], ...
+    |            ^^^^^^^^^^^^^^^^^^
+
+warning: function `filter_by_category` is never used
+   --> src/report/vulnerability.rs:444:12
+    |
+444 |     pub fn filter_by_category<'a>(vulnerabilities: &'a [Vulnerability], ...
+    |            ^^^^^^^^^^^^^^^^^^
+
+warning: function `get_vulnerability_stats` is never used
+   --> src/report/vulnerability.rs:449:12
+    |
+449 |     pub fn get_vulnerability_stats(vulnerabilities: &[Vulnerability]) ->...
+    |            ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `calculate_risk_score` is never used
+   --> src/report/vulnerability.rs:460:12
+    |
+460 |     pub fn calculate_risk_score(vulnerabilities: &[Vulnerability]) -> f64 {
+    |            ^^^^^^^^^^^^^^^^^^^^
+
+warning: associated items `init_config_dir` and `get_value` are never used
+   --> src/utils/config.rs:482:12
+    |
+329 | impl Config {
+    | ----------- associated items in this implementation
+...
+482 |     pub fn init_config_dir() -> Result<PathBuf> {
+    |            ^^^^^^^^^^^^^^^
+...
+510 |     pub fn get_value(&self, key: &str) -> Option<String> {
+    |            ^^^^^^^^^
+
+warning: field `config` is never read
+   --> src/utils/config.rs:658:5
+    |
+657 | pub struct ConfigBuilder {
+    |            ------------- field in this struct
+658 |     config: Config,
+    |     ^^^^^^
+
+warning: methods `ai_backend`, `log_level`, `output_dir`, `colored_output`, `analysis_depth`, and `build` are never used
+   --> src/utils/config.rs:670:12
+    |
+661 | impl ConfigBuilder {
+    | ------------------ methods in this implementation
+...
+670 |     pub fn ai_backend(mut self, backend: &str) -> Self {
+    |            ^^^^^^^^^^
+...
+676 |     pub fn log_level(mut self, level: &str) -> Self {
+    |            ^^^^^^^^^
+...
+682 |     pub fn output_dir<P: Into<PathBuf>>(mut self, dir: P) -> Self {
+    |            ^^^^^^^^^^
+...
+688 |     pub fn colored_output(mut self, enabled: bool) -> Self {
+    |            ^^^^^^^^^^^^^^
+...
+694 |     pub fn analysis_depth(mut self, depth: &str) -> Self {
+    |            ^^^^^^^^^^^^^^
+...
+700 |     pub fn build(self) -> Result<Config> {
+    |            ^^^^^
+
+warning: associated functions `new` and `load` are never used
+  --> src/utils/simple_config.rs:28:12
+   |
+27 | impl Config {
+   | ----------- associated functions in this implementation
+28 |     pub fn new() -> Self {
+   |            ^^^
+...
+32 |     pub fn load() -> Result<Self, Box<dyn std::error::Error>> {
+   |            ^^^^
+
+warning: multiple variants are never constructed
+  --> src/utils/error.rs:42:5
+   |
+15 | pub enum BugForgeXError {
+   |          -------------- variants in this enum
+...
+42 |     Plugin { plugin: String, message: String },
+   |     ^^^^^^
+...
+46 |     Analysis { message: String },
+   |     ^^^^^^^^
+...
+50 |     ContractFetch { message: String },
+   |     ^^^^^^^^^^^^^
+...
+54 |     ContractParse { message: String },
+   |     ^^^^^^^^^^^^^
+...
+58 |     AiAssistant { message: String },
+   |     ^^^^^^^^^^^
+...
+62 |     ReportGeneration { message: String },
+   |     ^^^^^^^^^^^^^^^^
+...
+66 |     ToolExecution { tool: String, message: String },
+   |     ^^^^^^^^^^^^^
+...
+70 |     Network { message: String },
+   |     ^^^^^^^
+...
+74 |     Authentication { message: String },
+   |     ^^^^^^^^^^^^^^
+...
+78 |     RateLimit { message: String },
+   |     ^^^^^^^^^
+   |
+   = note: `BugForgeXError` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: multiple associated functions are never used
+   --> src/utils/error.rs:95:12
+    |
+86  | impl BugForgeXError {
+    | ------------------- associated functions in this implementation
+...
+95  |     pub fn plugin(plugin: impl Into<String>, message: impl Into<String>)...
+    |            ^^^^^^
+...
+103 |     pub fn analysis(message: impl Into<String>) -> Self {
+    |            ^^^^^^^^
+...
+110 |     pub fn contract_fetch(message: impl Into<String>) -> Self {
+    |            ^^^^^^^^^^^^^^
+...
+117 |     pub fn contract_parse(message: impl Into<String>) -> Self {
+    |            ^^^^^^^^^^^^^^
+...
+124 |     pub fn ai_assistant(message: impl Into<String>) -> Self {
+    |            ^^^^^^^^^^^^
+...
+131 |     pub fn report_generation(message: impl Into<String>) -> Self {
+    |            ^^^^^^^^^^^^^^^^^
+...
+138 |     pub fn tool_execution(tool: impl Into<String>, message: impl Into<St...
+    |            ^^^^^^^^^^^^^^
+...
+146 |     pub fn network(message: impl Into<String>) -> Self {
+    |            ^^^^^^^
+...
+153 |     pub fn authentication(message: impl Into<String>) -> Self {
+    |            ^^^^^^^^^^^^^^
+...
+160 |     pub fn rate_limit(message: impl Into<String>) -> Self {
+    |            ^^^^^^^^^^
+...
+167 |     pub fn generic(message: impl Into<String>) -> Self {
+    |            ^^^^^^^
+
+warning: methods `context` and `with_context` are never used
+   --> src/utils/error.rs:179:8
+    |
+178 | pub trait ErrorContext<T> {
+    |           ------------ methods in this trait
+179 |     fn context(self, message: &str) -> Result<T>;
+    |        ^^^^^^^
+180 |     fn with_context<F>(self, f: F) -> Result<T>
+    |        ^^^^^^^^^^^^
+
+warning: function `from_anyhow` is never used
+   --> src/utils/error.rs:210:12
+    |
+210 |     pub fn from_anyhow(err: anyhow::Error) -> BugForgeXError {
+    |            ^^^^^^^^^^^
+
+warning: function `log_error` is never used
+   --> src/utils/error.rs:217:12
+    |
+217 |     pub fn log_error<T>(err: BugForgeXError) -> Result<T> {
+    |            ^^^^^^^^^
+
+warning: function `log_warning` is never used
+   --> src/utils/error.rs:223:12
+    |
+223 |     pub fn log_warning(message: &str) {
+    |            ^^^^^^^^^^^
+
+warning: function `is_retryable_error` is never used
+   --> src/utils/error.rs:228:12
+    |
+228 |     pub fn is_retryable_error(err: &BugForgeXError) -> bool {
+    |            ^^^^^^^^^^^^^^^^^^
+
+warning: function `get_error_category` is never used
+   --> src/utils/error.rs:236:12
+    |
+236 |     pub fn get_error_category(err: &BugForgeXError) -> &'static str {
+    |            ^^^^^^^^^^^^^^^^^^
+
+warning: `securechain` (bin "securechain") generated 38 warnings (run `cargo fix --bin "securechain"` to apply 1 suggestion)
+    Finished `release` profile [optimized] target(s) in 4.49s
+  Installing /home/gh0stcybers3c/.cargo/bin/securechain
+   Installed package `securechain v1.0.0 (/home/gh0stcybers3c/securechain/SecureChain)` (executable `securechain`)
+                                     
