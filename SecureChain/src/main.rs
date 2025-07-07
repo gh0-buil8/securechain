@@ -3,10 +3,10 @@
 //! A comprehensive security auditing tool with AI-powered vulnerability detection,
 //! fuzzing, static analysis, and automatic PoC generation.
 
+use std::env;
 use anyhow::Result;
+use colored::*;
 use clap::Parser;
-use colored::Colorize;
-
 
 mod cli;
 mod core;

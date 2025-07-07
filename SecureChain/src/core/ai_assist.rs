@@ -4,7 +4,6 @@
 //! vulnerability detection and exploit hypothesis generation.
 
 use anyhow::{anyhow, Result};
-use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 use crate::core::analyzer::CreativeProbe;
@@ -44,19 +43,13 @@ pub struct AIVulnerability {
 }
 
 pub struct AIAssistant {
-    client: Client,
     config: Config,
 }
 
 impl AIAssistant {
     /// Create a new AI assistant
     pub fn new(config: Config) -> Self {
-        let client = Client::builder()
-            .timeout(std::time::Duration::from_secs(120))
-            .build()
-            .expect("Failed to create HTTP client");
-
-        Self { client, config }
+        Self { config }
     }
 
     /// Analyze contract using AI
@@ -229,7 +222,9 @@ impl AIAssistant {
             "temperature": 0.1
         });
 
-        let response = self.client
+        let client = reqwest::Client::new();
+
+        let response = client
             .post("https://api.openai.com/v1/chat/completions")
             .header("Authorization", format!("Bearer {}", api_key))
             .header("Content-Type", "application/json")
@@ -262,7 +257,9 @@ impl AIAssistant {
             ]
         });
 
-        let response = self.client
+        let client = reqwest::Client::new();
+
+        let response = client
             .post("https://api.anthropic.com/v1/messages")
             .header("x-api-key", api_key)
             .header("Content-Type", "application/json")
@@ -291,7 +288,9 @@ impl AIAssistant {
             "stream": false
         });
 
-        let response = self.client
+        let client = reqwest::Client::new();
+
+        let response = client
             .post(&format!("{}/api/generate", ollama_url))
             .header("Content-Type", "application/json")
             .json(&request_body)
@@ -333,7 +332,9 @@ impl AIAssistant {
             "temperature": 0.3
         });
 
-        let response = self.client
+        let client = reqwest::Client::new();
+
+        let response = client
             .post("https://api.openai.com/v1/chat/completions")
             .header("Authorization", format!("Bearer {}", api_key))
             .header("Content-Type", "application/json")
@@ -371,7 +372,9 @@ impl AIAssistant {
             ]
         });
 
-        let response = self.client
+        let client = reqwest::Client::new();
+
+        let response = client
             .post("https://api.anthropic.com/v1/messages")
             .header("x-api-key", api_key)
             .header("Content-Type", "application/json")
@@ -405,7 +408,9 @@ impl AIAssistant {
             "stream": false
         });
 
-        let response = self.client
+        let client = reqwest::Client::new();
+
+        let response = client
             .post(&format!("{}/api/generate", ollama_url))
             .header("Content-Type", "application/json")
             .json(&request_body)

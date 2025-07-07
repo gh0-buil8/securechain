@@ -4,7 +4,6 @@
 //! including blockchain explorers, GitHub repositories, and local files.
 
 use anyhow::{anyhow, Result};
-use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
@@ -61,20 +60,15 @@ pub struct EtherscanContract {
 }
 
 pub struct ContractFetcher {
-    client: Client,
     config: Config,
 }
 
 impl ContractFetcher {
     /// Create a new contract fetcher
     pub fn new(config: Config) -> Self {
-        let client = Client::builder()
-            .user_agent("BugForgeX/1.0")
-            .timeout(std::time::Duration::from_secs(30))
-            .build()
-            .expect("Failed to create HTTP client");
-
-        Self { client, config }
+        Self {
+            config,
+        }
     }
 
     /// Fetch contracts from various sources
@@ -97,7 +91,7 @@ impl ContractFetcher {
     /// Fetch contract from Etherscan
     async fn fetch_from_etherscan(&self, address: &str, network: &str) -> Result<Vec<ContractInfo>> {
         let api_key = std::env::var("ETHERSCAN_API_KEY").unwrap_or_else(|_| "YourApiKeyToken".to_string());
-        
+
         let base_url = match network {
             "ethereum" => "https://api.etherscan.io/api",
             "polygon" => "https://api.polygonscan.com/api",
@@ -114,8 +108,15 @@ impl ContractFetcher {
 
         println!("Fetching contract from: {}", url);
 
-        let response = self.client.get(&url).send().await?;
-        let etherscan_response: EtherscanResponse = response.json().await?;
+        let response = ureq::get(&url)
+            .query("module", "contract")
+            .query("action", "getsourcecode") 
+            .query("address", address)
+            .query("apikey", &api_key)
+            .call()?;
+
+        let body = response.into_string()?;
+        let etherscan_response: EtherscanResponse = serde_json::from_str(&body)?;
 
         if etherscan_response.status != "1" {
             return Err(anyhow!("Etherscan API error: {}", etherscan_response.message));
@@ -154,12 +155,12 @@ impl ContractFetcher {
     /// Fetch contracts from GitHub
     async fn fetch_from_github(&self, query: &str) -> Result<Vec<ContractInfo>> {
         let github_token = std::env::var("GITHUB_TOKEN").ok();
-        
-        let mut headers = reqwest::header::HeaderMap::new();
-        headers.insert("User-Agent", "BugForgeX/1.0".parse()?);
-        
+
+        let mut headers = ureq::HeaderMap::new();
+        headers.insert("User-Agent", "BugForgeX/1.0".parse().unwrap());
+
         if let Some(token) = github_token {
-            headers.insert("Authorization", format!("token {}", token).parse()?);
+            headers.insert("Authorization", format!("token {}", token).parse().unwrap());
         }
 
         let url = format!(
@@ -167,21 +168,25 @@ impl ContractFetcher {
             urlencoding::encode(query)
         );
 
-        let response = self.client.get(&url).headers(headers).send().await?;
-        let search_result: serde_json::Value = response.json().await?;
+        let response = ureq::get(&url)
+            .set("User-Agent", "BugForgeX/1.0")
+            .set("Authorization", &format!("token {}", github_token.unwrap_or_default()))
+            .call()?;
+
+        let data: serde_json::Value = response.into_json()?;
 
         let mut contracts = Vec::new();
 
-        if let Some(items) = search_result["items"].as_array() {
+        if let Some(items) = data["items"].as_array() {
             for item in items.iter().take(10) { // Limit to first 10 results
                 if let (Some(name), Some(download_url)) = (
                     item["name"].as_str(),
                     item["download_url"].as_str(),
                 ) {
                     if name.ends_with(".sol") {
-                        match self.client.get(download_url).send().await {
+                        match ureq::get(download_url).call() {
                             Ok(content_response) => {
-                                if let Ok(source_code) = content_response.text().await {
+                                if let Ok(source_code) = content_response.into_string() {
                                     contracts.push(ContractInfo {
                                         name: name.to_string(),
                                         address: "".to_string(),
