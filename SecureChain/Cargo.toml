@@ -34,6 +34,7 @@ uuid = { version = "1.0", features = ["v4"] }
 futures = "0.3"
 walkdir = "2.0"
 urlencoding = "2.1"
+tempfile = "3.0"
 
 [dev-dependencies]
 tokio-test = "0.4"

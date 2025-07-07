@@ -82,10 +82,12 @@ impl ContractFetcher {
         &self,
         source: &str,
         address: &str,
-        network: &str,
+        api_key: Option<&str>,
     ) -> Result<Vec<ContractInfo>> {
         match source {
-            "etherscan" => self.fetch_from_etherscan(address, network).await,
+            "etherscan" | "ethereum" | "polygon" | "bsc" => {
+                self.fetch_from_etherscan(address, api_key.unwrap_or("")).await
+            },
             "github" => self.fetch_from_github(address).await,
             "local" => self.fetch_from_local(address).await,
             _ => Err(anyhow!("Unsupported source: {}", source)),
