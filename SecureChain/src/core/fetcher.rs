@@ -156,22 +156,19 @@ impl ContractFetcher {
     async fn fetch_from_github(&self, query: &str) -> Result<Vec<ContractInfo>> {
         let github_token = std::env::var("GITHUB_TOKEN").ok();
 
-        let mut headers = ureq::HeaderMap::new();
-        headers.insert("User-Agent", "BugForgeX/1.0".parse().unwrap());
-
-        if let Some(token) = github_token {
-            headers.insert("Authorization", format!("token {}", token).parse().unwrap());
-        }
-
         let url = format!(
             "https://api.github.com/search/code?q={}&sort=indexed&order=desc",
             urlencoding::encode(query)
         );
 
-        let response = ureq::get(&url)
-            .set("User-Agent", "BugForgeX/1.0")
-            .set("Authorization", &format!("token {}", github_token.unwrap_or_default()))
-            .call()?;
+        let mut request = ureq::get(&url)
+            .set("User-Agent", "BugForgeX/1.0");
+
+        if let Some(token) = &github_token {
+            request = request.set("Authorization", &format!("token {}", token));
+        }
+
+        let response = request.call()?;
 
         let data: serde_json::Value = response.into_json()?;
 

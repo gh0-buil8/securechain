@@ -4,7 +4,6 @@
 //! utilities for the application.
 
 use anyhow;
-use reqwest;
 use serde_json;
 
 use thiserror::Error;
@@ -26,8 +25,8 @@ pub enum BugForgeXError {
     Toml(#[from] toml::de::Error),
 
     /// HTTP request errors
-    #[error("HTTP error: {0}")]
-    Http(#[from] reqwest::Error),
+    #[error("HTTP error: {message}")]
+    Http { message: String },
 
     /// Regex compilation errors
     #[error("Regex error: {0}")]
@@ -228,7 +227,7 @@ pub mod utils {
     pub fn is_retryable_error(err: &BugForgeXError) -> bool {
         matches!(
             err,
-            BugForgeXError::Network { .. } | BugForgeXError::RateLimit { .. } | BugForgeXError::Http(_)
+            BugForgeXError::Network { .. } | BugForgeXError::RateLimit { .. } | BugForgeXError::Http { .. }
         )
     }
 

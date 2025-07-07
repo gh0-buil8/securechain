@@ -4,7 +4,7 @@
 //! fuzzing, static analysis, and automatic PoC generation.
 
 use std::env;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use colored::*;
 use clap::Parser;
 
