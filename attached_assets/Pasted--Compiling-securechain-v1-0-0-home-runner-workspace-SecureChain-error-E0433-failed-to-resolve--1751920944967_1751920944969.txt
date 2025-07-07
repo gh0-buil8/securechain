@@ -1,0 +1,80 @@
+ Compiling securechain v1.0.0 (/home/runner/workspace/SecureChain)
+error[E0433]: failed to resolve: use of undeclared crate or module `tempfile`
+   --> src/core/analyzer.rs:271:25
+    |
+271 |         let temp_file = tempfile::NamedTempFile::new()?;
+    |                         ^^^^^^^^ use of undeclared crate or module `tempfile`
+
+error[E0433]: failed to resolve: use of undeclared crate or module `tempfile`
+   --> src/core/analyzer.rs:297:25
+    |
+297 |         let temp_file = tempfile::NamedTempFile::new()?;
+    |                         ^^^^^^^^ use of undeclared crate or module `tempfile`
+
+error[E0433]: failed to resolve: use of undeclared crate or module `tempfile`
+   --> src/core/analyzer.rs:324:25
+    |
+324 |         let temp_file = tempfile::NamedTempFile::new()?;
+    |                         ^^^^^^^^ use of undeclared crate or module `tempfile`
+
+error[E0433]: failed to resolve: use of undeclared crate or module `tempfile`
+  --> src/plugins/evm.rs:64:25
+   |
+64 |         let temp_file = tempfile::NamedTempFile::new()?;
+   |                         ^^^^^^^^ use of undeclared crate or module `tempfile`
+
+warning: unused import: `crate::core::ai_assist::AIAssistant`
+ --> src/cli/commands.rs:1:5
+  |
+1 | use crate::core::ai_assist::AIAssistant;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+error[E0308]: mismatched types
+   --> src/cli/commands.rs:211:65
+    |
+211 | ...cher.fetch_contracts(&network, &address, api_key.as_deref()).await?;
+    |         ---------------                     ^^^^^^^^^^^^^^^^^^ expected `&str`, found `Option<&str>`
+    |         |
+    |         arguments to this method are incorrect
+    |
+    = note: expected reference `&str`
+                    found enum `std::option::Option<&str>`
+note: method defined here
+   --> src/core/fetcher.rs:81:18
+    |
+81  |     pub async fn fetch_contracts(
+    |                  ^^^^^^^^^^^^^^^
+...
+85  |         network: &str,
+    |         -------------
+help: consider using `Option::expect` to unwrap the `std::option::Option<&str>` value, panicking if the value is an `Option::None`
+    |
+211 |     let contracts = fetcher.fetch_contracts(&network, &address, api_key.as_deref().expect("REASON")).await?;
+    |                                                                                   +++++++++++++++++
+
+warning: unused variable: `fuzz_results`
+   --> src/cli/commands.rs:274:17
+    |
+274 |             let fuzz_results = fuzz_engine.fuzz_contract(&parsed_contra...
+    |                 ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_fuzz_results`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+error[E0433]: failed to resolve: use of undeclared crate or module `tempfile`
+   --> src/core/fuzz_engine.rs:180:24
+    |
+180 |         let temp_dir = tempfile::tempdir()?;
+    |                        ^^^^^^^^ use of undeclared crate or module `tempfile`
+
+warning: unused variable: `config`
+   --> src/cli/commands.rs:302:5
+    |
+302 |     config: Config,
+    |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_config`
+
+Some errors have detailed explanations: E0308, E0433.
+For more information about an error, try `rustc --explain E0308`.
+warning: `securechain` (bin "securechain") generated 3 warnings
+error: could not compile `securechain` (bin "securechain") due to 6 previous errors; 3 warnings emitted
