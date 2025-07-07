@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
 
-use crate::core::analyzer::{AnalysisResults, AnalysisMetrics, AnalysisSummary};
+use crate::core::analyzer::{AnalysisResults, AnalysisMetrics};
 use crate::report::vulnerability::{Vulnerability, VulnerabilityCategory};
 use crate::utils::config::Config;
 
@@ -249,7 +249,7 @@ This comprehensive security audit employed multiple analysis techniques:
         }
         
         for severity in &["Critical", "High", "Medium", "Low", "Info"] {
-            if let Some(vulns) = by_severity.get(*severity) {
+            if let Some(vulns) = by_severity.get(severity) {
                 report.push_str(&format!("\n### {} Severity Issues ({})\n\n", severity, vulns.len()));
                 
                 for (i, vuln) in vulns.iter().enumerate() {
@@ -703,7 +703,7 @@ This vulnerability could potentially lead to [describe specific impact based on 
     }
 
     /// Generate markdown report
-    fn generate_markdown_report(&self, report: &ComprehensiveReport) -> Result<String> {
+    pub fn generate_markdown_report(&self, report: &ComprehensiveReport) -> Result<String> {
         let mut markdown = String::new();
 
         // Title and metadata

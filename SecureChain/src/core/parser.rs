@@ -3,7 +3,7 @@
 //! This module handles parsing of smart contract source code
 //! and extraction of relevant metadata for security analysis.
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
