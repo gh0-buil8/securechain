@@ -237,7 +237,7 @@ pub mod utils {
             BugForgeXError::Io(_) => "io",
             BugForgeXError::Json(_) => "serialization",
             BugForgeXError::Toml(_) => "config",
-            BugForgeXError::Http(_) => "http",
+            BugForgeXError::Http { .. } => "http",
             BugForgeXError::Regex(_) => "regex",
             BugForgeXError::Config { .. } => "config",
             BugForgeXError::Plugin { .. } => "plugin",
