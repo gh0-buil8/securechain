@@ -65,6 +65,33 @@ pub enum Commands {
         output: Option<PathBuf>,
     },
     
+    /// Perfect audit - Complete security analysis with fuzzing, AI, and PoC generation
+    Perfect {
+        /// Path to contract file or directory
+        #[arg(short, long)]
+        input: PathBuf,
+        
+        /// Target blockchain/language (evm, move, cairo, ink)
+        #[arg(short, long, default_value = "evm")]
+        target: String,
+        
+        /// AI creativity level (low, medium, high)
+        #[arg(short, long, default_value = "high")]
+        creativity: String,
+        
+        /// LLM backend (local, openai, anthropic)
+        #[arg(long, default_value = "openai")]
+        llm: String,
+        
+        /// Output directory for reports
+        #[arg(short, long, default_value = "./audit_results")]
+        output: PathBuf,
+        
+        /// Skip interactive prompts
+        #[arg(long)]
+        yes: bool,
+    },
+    
     /// Generate creative exploit probes
     Probe {
         /// Path to contract file
@@ -141,6 +168,9 @@ pub async fn execute_command(cli: Cli, config: Config) -> Result<()> {
         }
         Commands::Probe { input, creativity, llm, poc } => {
             execute_probe_command(input, creativity, llm, poc, config).await
+        }
+        Commands::Perfect { input, target, creativity, llm, output, yes } => {
+            execute_perfect_audit(input, target, creativity, llm, output, yes, config).await
         }
         Commands::Report { input, format, output, summary } => {
             execute_report_command(input, format, output, summary, config).await
@@ -469,6 +499,336 @@ fn display_vulnerability_group(
         
         println!();
     }
+    
+    Ok(())
+}
+
+
+
+/// Execute perfect audit command - Complete automated security analysis
+async fn execute_perfect_audit(
+    input: PathBuf,
+    target: String,
+    creativity: String,
+    llm: String,
+    output: PathBuf,
+    yes: bool,
+    config: Config,
+) -> Result<()> {
+    println!("{}", "🎯 PERFECT AUDIT INITIATED".bright_cyan().bold());
+    println!("{}", "=========================".bright_cyan());
+    
+    if !yes {
+        println!("This will perform a comprehensive security audit including:");
+        println!("  • Static analysis (Slither, Mythril)");
+        println!("  • Dynamic fuzzing (Echidna)");
+        println!("  • AI-powered vulnerability detection");
+        println!("  • Creative exploit probe generation");
+        println!("  • Proof-of-concept generation");
+        println!("  • Professional audit report");
+        println!("\nContinue? (y/N)");
+        
+        let mut input_line = String::new();
+        std::io::stdin().read_line(&mut input_line)?;
+        if !input_line.trim().to_lowercase().starts_with('y') {
+            println!("Audit cancelled.");
+            return Ok(());
+        }
+    }
+    
+    // Create output directory
+    std::fs::create_dir_all(&output)?;
+    
+    let start_time = std::time::Instant::now();
+    
+    // Step 1: Initial contract analysis
+    println!("\n{} Step 1: Contract Analysis", "🔍".bright_blue());
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    
+    let plugin_manager = PluginManager::new();
+    let analysis_engine = AnalysisEngine::new(config.clone(), plugin_manager);
+    
+    let analysis_results = analysis_engine
+        .analyze_contracts(&input, &target, "deep", true)
+        .await?;
+    
+    println!("✅ Found {} vulnerabilities", analysis_results.vulnerabilities.len());
+    
+    // Step 2: Fuzzing Analysis
+    println!("\n{} Step 2: Dynamic Fuzzing", "🎲".bright_green());
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    
+    let fuzz_engine = crate::core::fuzz_engine::FuzzEngine::new(config.clone());
+    
+    // Get contracts for fuzzing
+    let fetcher = crate::core::fetcher::ContractFetcher::new(config.clone());
+    let contracts = fetcher.fetch_from_local(input.to_str().unwrap()).await?;
+    
+    let mut all_fuzz_results = Vec::new();
+    for contract in &contracts {
+        let parsed_contract = crate::core::parser::ContractParser::new()?.parse_contract(contract)?;
+        let fuzz_results = fuzz_engine.fuzz_contract(&parsed_contract).await?;
+        
+        // Convert fuzzing results to vulnerabilities
+        let fuzz_vulnerabilities = fuzz_engine.convert_to_vulnerabilities(&fuzz_results);
+        all_fuzz_results.extend(fuzz_vulnerabilities);
+        
+        println!("✅ Fuzzing completed for {} - {} issues found", 
+                 contract.name, fuzz_results.failures.len());
+    }
+    
+    // Step 3: Creative AI Probes
+    println!("\n{} Step 3: AI Creative Probes", "🧠".bright_magenta());
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    
+    let creative_probes = analysis_engine
+        .generate_creative_probes(&input, &creativity, &llm, true)
+        .await?;
+    
+    println!("✅ Generated {} creative attack probes", creative_probes.len());
+    
+    // Step 4: Generate PoCs
+    println!("\n{} Step 4: Proof-of-Concept Generation", "⚡".bright_yellow());
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    
+    let poc_count = generate_pocs(&analysis_results, &creative_probes, &output).await?;
+    println!("✅ Generated {} proof-of-concept exploits", poc_count);
+    
+    // Step 5: Comprehensive Report
+    println!("\n{} Step 5: Report Generation", "📊".bright_cyan());
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    
+    let report_gen = ReportGenerator::new(config);
+    
+    // Combine all results
+    let mut combined_results = analysis_results;
+    combined_results.vulnerabilities.extend(all_fuzz_results);
+    
+    // Generate executive report
+    let exec_report = report_gen.generate_executive_summary(&combined_results, &creative_probes)?;
+    let exec_path = output.join("executive_summary.md");
+    std::fs::write(&exec_path, exec_report)?;
+    
+    // Generate technical report
+    let tech_report = report_gen.generate_technical_report(&combined_results, &creative_probes)?;
+    let tech_path = output.join("technical_report.md");
+    std::fs::write(&tech_path, tech_report)?;
+    
+    // Generate JSON report
+    let json_report = serde_json::to_string_pretty(&combined_results)?;
+    let json_path = output.join("analysis_results.json");
+    std::fs::write(&json_path, json_report)?;
+    
+    // Generate PoC index
+    generate_poc_index(&output, poc_count)?;
+    
+    let duration = start_time.elapsed();
+    
+    // Final Summary
+    println!("\n{}", "🎉 PERFECT AUDIT COMPLETED".bright_green().bold());
+    println!("{}", "===========================".bright_green());
+    println!("⏱️  Duration: {:.2} seconds", duration.as_secs_f64());
+    println!("🔍 Total vulnerabilities: {}", combined_results.vulnerabilities.len());
+    println!("🎯 Creative probes: {}", creative_probes.len());
+    println!("⚡ PoCs generated: {}", poc_count);
+    println!("📊 Reports generated: 4");
+    println!("📁 Output directory: {}", output.display());
+    
+    println!("\n{} Files generated:", "📋".bright_blue());
+    println!("  • executive_summary.md - Business-ready summary");
+    println!("  • technical_report.md - Detailed technical analysis");
+    println!("  • analysis_results.json - Machine-readable results");
+    println!("  • poc_exploits/ - Proof-of-concept exploits");
+    println!("  • poc_index.md - PoC documentation");
+    
+    Ok(())
+}
+
+/// Generate proof-of-concept exploits
+async fn generate_pocs(
+    analysis_results: &crate::core::analyzer::AnalysisResults,
+    creative_probes: &[crate::core::analyzer::CreativeProbe],
+    output_dir: &PathBuf,
+) -> Result<usize> {
+    let poc_dir = output_dir.join("poc_exploits");
+    std::fs::create_dir_all(&poc_dir)?;
+    
+    let mut poc_count = 0;
+    
+    // Generate PoCs for high/critical vulnerabilities
+    for vuln in &analysis_results.vulnerabilities {
+        if matches!(vuln.severity.as_str(), "Critical" | "High") {
+            let poc_content = generate_vulnerability_poc(vuln)?;
+            let poc_file = poc_dir.join(format!("poc_{}.sol", poc_count + 1));
+            std::fs::write(&poc_file, poc_content)?;
+            poc_count += 1;
+        }
+    }
+    
+    // Generate PoCs for creative probes
+    for (i, probe) in creative_probes.iter().enumerate() {
+        if let Some(poc) = &probe.proof_of_concept {
+            let poc_file = poc_dir.join(format!("creative_poc_{}.sol", i + 1));
+            std::fs::write(&poc_file, poc)?;
+            poc_count += 1;
+        }
+    }
+    
+    Ok(poc_count)
+}
+
+/// Generate PoC for a specific vulnerability
+fn generate_vulnerability_poc(vuln: &crate::report::vulnerability::Vulnerability) -> Result<String> {
+    let poc_template = format!(r#"
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+/**
+ * Proof of Concept Exploit for: {}
+ * Severity: {}
+ * Category: {:?}
+ * 
+ * Description: {}
+ * 
+ * This PoC demonstrates how the vulnerability can be exploited.
+ * DO NOT USE IN PRODUCTION - FOR EDUCATIONAL PURPOSES ONLY
+ */
+
+import "./target_contract.sol"; // Import the vulnerable contract
+
+contract Exploit {{
+    TargetContract public target;
+    
+    constructor(address _target) {{
+        target = TargetContract(_target);
+    }}
+    
+    /**
+     * Execute the exploit
+     */
+    function exploit() external payable {{
+        // TODO: Implement specific exploit logic based on vulnerability type
+        // This is a template - customize based on the actual vulnerability
+        
+        // Example for reentrancy:
+        // target.vulnerableFunction{{value: msg.value}}();
+        
+        // Example for access control:
+        // target.privilegedFunction();
+        
+        // Example for integer overflow:
+        // target.arithmeticFunction(type(uint256).max);
+    }}
+    
+    /**
+     * Receive function for reentrancy attacks
+     */
+    receive() external payable {{
+        if (address(target).balance > 0) {{
+            // target.vulnerableFunction();
+        }}
+    }}
+}}
+
+/**
+ * Test Contract for the Exploit
+ */
+contract ExploitTest {{
+    TargetContract public target;
+    Exploit public exploit;
+    
+    function setUp() public {{
+        target = new TargetContract();
+        exploit = new Exploit(address(target));
+    }}
+    
+    function testExploit() public {{
+        // Setup initial state
+        // target.setup{{value: 1 ether}}();
+        
+        uint256 balanceBefore = address(this).balance;
+        
+        // Execute exploit
+        exploit.exploit{{value: 0.1 ether}}();
+        
+        uint256 balanceAfter = address(this).balance;
+        
+        // Verify exploit success
+        assert(balanceAfter > balanceBefore);
+    }}
+}}
+"#, vuln.title, vuln.severity, vuln.category, vuln.description);
+    
+    Ok(poc_template)
+}
+
+/// Generate PoC index documentation
+fn generate_poc_index(output_dir: &PathBuf, poc_count: usize) -> Result<()> {
+    let index_content = format!(r#"
+# Proof-of-Concept Exploits Index
+
+This directory contains {} proof-of-concept exploits generated during the security audit.
+
+## ⚠️ IMPORTANT DISCLAIMER
+
+**These exploits are for educational and testing purposes only. DO NOT use them against contracts you do not own or have explicit permission to test.**
+
+## Structure
+
+### Vulnerability PoCs
+- `poc_*.sol` - Exploits for critical and high severity vulnerabilities found during static analysis
+
+### Creative PoCs  
+- `creative_poc_*.sol` - Exploits for creative attack vectors discovered by AI analysis
+
+## Usage
+
+1. **Review the exploit code** to understand the attack vector
+2. **Modify target contract imports** to point to your actual contract
+3. **Customize exploit logic** based on your specific contract implementation
+4. **Test in a safe environment** (local testnet, fork, etc.)
+5. **Use findings to fix vulnerabilities** in your contract
+
+## Testing Framework
+
+Most PoCs include test contracts that can be used with Foundry:
+
+```bash
+# Install Foundry if not already installed
+curl -L https://foundry.paradigm.xyz | bash
+foundryup
+
+# Run tests
+forge test -vvv
+```
+
+## Categories Covered
+
+The generated PoCs may cover:
+- ⚡ Reentrancy attacks
+- 🔐 Access control bypasses  
+- 🔢 Integer overflow/underflow
+- 💸 Economic exploitation
+- ⛽ Gas griefing attacks
+- 🎯 MEV extraction
+- 🕐 Timestamp manipulation
+- 🎲 Randomness exploitation
+
+## Next Steps
+
+1. **Fix identified vulnerabilities** in your contracts
+2. **Add proper security measures** (reentrancy guards, access controls, etc.)
+3. **Write comprehensive tests** to prevent regressions
+4. **Consider additional security measures** like circuit breakers and time delays
+5. **Get a professional audit** before mainnet deployment
+
+---
+
+Generated by SecureChain Perfect Audit v{}
+"#, poc_count, env!("CARGO_PKG_VERSION"));
+    
+    let index_path = output_dir.join("poc_index.md");
+    std::fs::write(&index_path, index_content)?;
     
     Ok(())
 }

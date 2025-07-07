@@ -1,71 +1,124 @@
-//! BugForgeX - Universal Web3 Smart Contract Security Auditor
 
-use std::env;
+//! SecureChain - Universal Web3 Smart Contract Security Auditor
+//! 
+//! A comprehensive security auditing tool with AI-powered vulnerability detection,
+//! fuzzing, static analysis, and automatic PoC generation.
 
-fn print_banner() {
-    println!("
-    ██████╗ ██╗   ██╗ ██████╗ ███████╗ ██████╗ ██████╗  ██████╗ ███████╗██╗  ██╗
-    ██╔══██╗██║   ██║██╔════╝ ██╔════╝██╔═══██╗██╔══██╗██╔════╝ ██╔════╝╚██╗██╔╝
-    ██████╔╝██║   ██║██║  ███╗█████╗  ██║   ██║██████╔╝██║  ███╗█████╗   ╚███╔╝ 
-    ██╔══██╗██║   ██║██║   ██║██╔══╝  ██║   ██║██╔══██╗██║   ██║██╔══╝   ██╔██╗ 
-    ██████╔╝╚██████╔╝╚██████╔╝██║     ╚██████╔╝██║  ██║╚██████╔╝███████╗██╔╝ ██╗
-    ╚═════╝  ╚═════╝  ╚═════╝ ╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝
-    
-    Universal Web3 Smart Contract Security Auditor
-    Version 0.1.0 - Powered by Rust & AI
-    ");
-}
+use anyhow::Result;
+use clap::Parser;
+use colored::Colorize;
+use std::path::PathBuf;
 
-fn main() {
+mod cli;
+mod core;
+mod plugins;
+mod report;
+mod utils;
+
+use cli::commands::{execute_command, Cli};
+use utils::config::Config;
+
+#[tokio::main]
+async fn main() -> Result<()> {
     // Initialize logging
-    if env::var("RUST_LOG").is_err() {
-        env::set_var("RUST_LOG", "info");
-    }
-    env_logger::init();
+    env_logger::Builder::from_default_env()
+        .filter_level(log::LevelFilter::Info)
+        .init();
 
     // Display banner
-    print_banner();
+    display_banner();
 
-    println!("🔍 BugForgeX - Universal Web3 Smart Contract Security Auditor");
-    println!("=============================================================");
-    println!();
+    // Check if this is first run and setup if needed
+    if !is_setup_complete() {
+        println!("🔧 First-time setup detected. Running automatic setup...");
+        run_auto_setup().await?;
+    }
+
+    // Parse CLI arguments
+    let cli = Cli::parse();
+
+    // Load configuration
+    let config = Config::load_or_default()?;
+
+    // Execute the command
+    match execute_command(cli, config).await {
+        Ok(_) => {
+            println!("\n{} Operation completed successfully!", "✅".green());
+        }
+        Err(e) => {
+            eprintln!("\n{} Error: {}", "❌".red(), e);
+            std::process::exit(1);
+        }
+    }
+
+    Ok(())
+}
+
+/// Display SecureChain banner
+fn display_banner() {
+    println!("{}", r#"
+    ╔═══════════════════════════════════════════════════════════════╗
+    ║                                                               ║
+    ║   ███████╗███████╗ ██████╗██╗   ██╗██████╗ ███████╗          ║
+    ║   ██╔════╝██╔════╝██╔════╝██║   ██║██╔══██╗██╔════╝          ║
+    ║   ███████╗█████╗  ██║     ██║   ██║██████╔╝█████╗            ║
+    ║   ╚════██║██╔══╝  ██║     ██║   ██║██╔══██╗██╔══╝            ║
+    ║   ███████║███████╗╚██████╗╚██████╔╝██║  ██║███████╗          ║
+    ║   ╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝          ║
+    ║                                                               ║
+    ║        ██████╗██╗  ██╗ █████╗ ██╗███╗   ██╗                  ║
+    ║       ██╔════╝██║  ██║██╔══██╗██║████╗  ██║                  ║
+    ║       ██║     ███████║███████║██║██╔██╗ ██║                  ║
+    ║       ██║     ██╔══██║██╔══██║██║██║╚██╗██║                  ║
+    ║       ╚██████╗██║  ██║██║  ██║██║██║ ╚████║                  ║
+    ║        ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝                  ║
+    ║                                                               ║
+    ║              Universal Web3 Security Auditor                 ║
+    ║               AI-Powered • Multi-Platform                    ║
+    ║                                                               ║
+    ╚═══════════════════════════════════════════════════════════════╝
+    "#.bright_cyan());
     
-    println!("✅ Build successful!");
-    println!("📋 Available commands:");
-    println!("   bugforgex analyze <contract>     - Analyze smart contract for vulnerabilities");
-    println!("   bugforgex fetch <address>        - Fetch contract from blockchain explorer");  
-    println!("   bugforgex probe <contract>       - Generate creative vulnerability probes");
-    println!("   bugforgex report <results>       - Generate comprehensive audit report");
-    println!("   bugforgex config                 - Manage configuration settings");
-    println!("   bugforgex install                - Install analysis dependencies");
-    println!("   bugforgex --help                 - Show detailed help information");
+    println!("{} v{} - {}", 
+             "SecureChain".bright_white().bold(),
+             env!("CARGO_PKG_VERSION"),
+             "Perfect Smart Contract Security Auditing".dimmed());
     println!();
+}
+
+/// Check if setup is complete
+fn is_setup_complete() -> bool {
+    // Check for required tools
+    let tools = ["slither", "myth", "echidna-test", "forge"];
     
-    println!("🌟 Features:");
-    println!("   • Multi-platform support: EVM, Move, Cairo, Ink!, Rust");
-    println!("   • AI-powered vulnerability detection");
-    println!("   • Static analysis with Slither, Mythril integration");
-    println!("   • Dynamic testing and fuzzing with Echidna");
-    println!("   • Creative exploit hypothesis generation");
-    println!("   • Professional audit reports in multiple formats");
-    println!();
+    for tool in &tools {
+        if std::process::Command::new(tool)
+            .arg("--version")
+            .output()
+            .is_err()
+        {
+            return false;
+        }
+    }
     
-    println!("📖 Quick Start:");
-    println!("   # Analyze a Solidity contract");
-    println!("   bugforgex analyze contract.sol");
-    println!();
-    println!("   # Fetch and analyze from Etherscan");
-    println!("   bugforgex fetch 0x1234... --network ethereum");
-    println!();
-    println!("   # Generate AI-powered creative probes");  
-    println!("   bugforgex probe contract.sol --creativity high");
-    println!();
+    true
+}
+
+/// Run automatic setup
+async fn run_auto_setup() -> Result<()> {
+    println!("🔧 Setting up SecureChain with all required tools...");
     
-    println!("🔧 Configuration:");
-    println!("   Config file: ~/.config/bugforgex/config.toml");
-    println!("   Set AI backend: bugforgex config set ai.backend openai");
-    println!("   View settings: bugforgex config show");
-    println!();
+    // Run setup script
+    let output = std::process::Command::new("bash")
+        .arg("setup.sh")
+        .current_dir(std::env::current_dir()?)
+        .output()?;
     
-    println!("🚀 Ready to secure Web3! Run 'bugforgex --help' for detailed usage.");
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(anyhow::anyhow!("Setup failed: {}", stderr));
+    }
+    
+    println!("✅ Setup completed successfully!");
+    Ok(())
 }

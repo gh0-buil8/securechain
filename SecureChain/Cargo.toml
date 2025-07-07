@@ -1,57 +1,65 @@
+
 [package]
-name = "bugforgex"
-version = "0.1.0"
+name = "securechain"
+version = "1.0.0"
 edition = "2021"
-authors = ["BugForgeX Team"]
-description = "Universal Web3 Smart Contract Security Auditor"
+description = "Universal Web3 Smart Contract Security Auditor with AI-powered vulnerability detection"
+authors = ["SecureChain Team <security@securechain.dev>"]
 license = "MIT"
-repository = "https://github.com/bugforgex/bugforgex"
+repository = "https://github.com/securechain/securechain"
+documentation = "https://docs.securechain.dev"
 readme = "README.md"
-keywords = ["security", "blockchain", "web3", "audit", "smart-contracts"]
-categories = ["command-line-utilities", "cryptography"]
+keywords = ["blockchain", "security", "audit", "smart-contracts", "web3"]
+categories = ["command-line-utilities", "development-tools", "cryptography"]
 
 [[bin]]
-name = "bugforgex"
+name = "securechain"
 path = "src/main.rs"
 
 [dependencies]
-clap = { version = "4.4", features = ["derive", "cargo"] }
-tokio = { version = "1.35", features = ["full"] }
-reqwest = { version = "0.11", features = ["json", "stream"] }
+# Core dependencies
+anyhow = "1.0"
+tokio = { version = "1.0", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-anyhow = "1.0"
-thiserror = "1.0"
-colored = "2.1"
-uuid = { version = "1.6", features = ["v4"] }
+uuid = { version = "1.0", features = ["v4"] }
 chrono = { version = "0.4", features = ["serde"] }
-log = "0.4"
-env_logger = "0.10"
-home = "0.5"
-dirs = "5.0"
-regex = "1.10"
-url = "2.5"
-base64 = "0.21"
-sha2 = "0.10"
-hex = "0.4"
+
+# CLI and configuration
+clap = { version = "4.0", features = ["derive"] }
+colored = "2.0"
 toml = "0.8"
+env_logger = "0.10"
+log = "0.4"
+
+# HTTP client for AI APIs
+reqwest = { version = "0.11", features = ["json"] }
+
+# File operations
+tempfile = "3.0"
+walkdir = "2.0"
+
+# Async utilities
 futures = "0.3"
-walkdir = "2.4"
-tempfile = "3.8"
-indicatif = "0.17"
-dialoguer = "0.11"
-console = "0.15"
-tui = "0.19"
-crossterm = "0.27"
+
+# Regex for parsing
+regex = "1.0"
+
+# Base64 for encoding
+base64 = "0.21"
 
 [dev-dependencies]
 tokio-test = "0.4"
-tempfile = "3.8"
-assert_cmd = "2.0"
-predicates = "3.0"
+
+[features]
+default = ["full"]
+full = ["ai", "fuzzing", "reporting"]
+ai = []
+fuzzing = []
+reporting = []
 
 [profile.release]
 opt-level = 3
 lto = true
 codegen-units = 1
-strip = true
+panic = "abort"

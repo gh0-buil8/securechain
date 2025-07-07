@@ -97,6 +97,304 @@ impl ReportGenerator {
     pub fn new(config: Config) -> Self {
         Self { config }
     }
+    
+    /// Generate executive summary report
+    pub fn generate_executive_summary(
+        &self,
+        results: &crate::core::analyzer::AnalysisResults,
+        probes: &[crate::core::analyzer::CreativeProbe],
+    ) -> Result<String> {
+        let mut report = String::new();
+        
+        // Header
+        report.push_str(&format!(r#"
+# Executive Security Audit Summary
+
+**Project:** {}  
+**Audit Date:** {}  
+**Auditor:** SecureChain Perfect Audit  
+**Version:** {}
+
+## 🎯 Executive Overview
+
+This security audit was conducted using SecureChain's comprehensive analysis framework, combining static analysis, dynamic fuzzing, and AI-powered vulnerability detection to identify potential security risks in the smart contract codebase.
+
+## 📊 Key Findings
+
+| Metric | Value |
+|--------|-------|
+| **Total Vulnerabilities** | {} |
+| **Critical Severity** | {} |
+| **High Severity** | {} |
+| **Medium Severity** | {} |
+| **Low Severity** | {} |
+| **Security Score** | {:.1}/100 |
+| **Creative Probes** | {} |
+
+## 🚨 Critical Issues Summary
+
+"#, 
+            results.contract_name,
+            chrono::Utc::now().format("%Y-%m-%d"),
+            env!("CARGO_PKG_VERSION"),
+            results.vulnerabilities.len(),
+            results.analysis_summary.critical_count,
+            results.analysis_summary.high_count,
+            results.analysis_summary.medium_count,
+            results.analysis_summary.low_count,
+            results.metrics.security_score,
+            probes.len()
+        ));
+        
+        // Critical issues
+        let critical_issues: Vec<_> = results.vulnerabilities.iter()
+            .filter(|v| v.severity == "Critical")
+            .collect();
+            
+        if critical_issues.is_empty() {
+            report.push_str("✅ **No critical vulnerabilities found.**\n\n");
+        } else {
+            for (i, issue) in critical_issues.iter().enumerate() {
+                report.push_str(&format!(
+                    "{}. **{}**\n   - Impact: High financial/security risk\n   - Status: Requires immediate attention\n\n",
+                    i + 1, issue.title
+                ));
+            }
+        }
+        
+        // Business impact
+        report.push_str(&format!(r#"
+## 💼 Business Impact Assessment
+
+**Risk Level:** {}
+
+**Financial Risk:** {}
+
+**Recommended Actions:**
+1. Address all critical and high severity vulnerabilities before deployment
+2. Implement comprehensive testing framework
+3. Consider bug bounty program for ongoing security
+4. Schedule regular security audits
+
+## 🔧 Remediation Timeline
+
+| Priority | Timeframe | Action Items |
+|----------|-----------|--------------|
+| **Immediate** | 1-3 days | Fix critical vulnerabilities |
+| **High** | 1-2 weeks | Address high severity issues |
+| **Medium** | 2-4 weeks | Resolve medium severity issues |
+| **Low** | Next release | Address low priority items |
+
+## 📈 Security Maturity Recommendations
+
+1. **Code Quality:** Implement strict coding standards and peer review
+2. **Testing:** Achieve >90% test coverage with edge case testing
+3. **Monitoring:** Deploy runtime monitoring and alerting systems
+4. **Incident Response:** Establish security incident response procedures
+
+---
+
+*This executive summary provides a high-level overview. See the technical report for detailed findings and remediation guidance.*
+"#,
+            if results.analysis_summary.critical_count > 0 { "🔴 HIGH" }
+            else if results.analysis_summary.high_count > 0 { "🟠 MEDIUM" }
+            else { "🟢 LOW" },
+            
+            if results.analysis_summary.critical_count > 0 { "Potential for significant financial loss" }
+            else { "Limited financial exposure" }
+        ));
+        
+        Ok(report)
+    }
+    
+    /// Generate technical report
+    pub fn generate_technical_report(
+        &self,
+        results: &crate::core::analyzer::AnalysisResults,
+        probes: &[crate::core::analyzer::CreativeProbe],
+    ) -> Result<String> {
+        let mut report = String::new();
+        
+        // Header
+        report.push_str(&format!(r#"
+# Technical Security Audit Report
+
+**Project:** {}  
+**Audit Date:** {}  
+**Analysis Duration:** {:.2} seconds  
+**Tools Used:** {}
+
+## 🔍 Methodology
+
+This comprehensive security audit employed multiple analysis techniques:
+
+1. **Static Analysis:** Code review using Slither and Mythril
+2. **Dynamic Analysis:** Property-based fuzzing with Echidna
+3. **AI Analysis:** Creative vulnerability discovery using large language models
+4. **Manual Review:** Expert analysis of complex logic and edge cases
+
+## 📋 Detailed Findings
+
+"#,
+            results.contract_name,
+            chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC"),
+            results.analysis_summary.analysis_duration,
+            results.analysis_summary.tools_used.join(", ")
+        ));
+        
+        // Group and display vulnerabilities
+        let mut by_severity = std::collections::HashMap::new();
+        for vuln in &results.vulnerabilities {
+            by_severity.entry(&vuln.severity).or_insert(Vec::new()).push(vuln);
+        }
+        
+        for severity in &["Critical", "High", "Medium", "Low", "Info"] {
+            if let Some(vulns) = by_severity.get(severity) {
+                report.push_str(&format!("\n### {} Severity Issues ({})\n\n", severity, vulns.len()));
+                
+                for (i, vuln) in vulns.iter().enumerate() {
+                    report.push_str(&format!(r#"
+#### {}.{} {}
+
+**Severity:** {}  
+**Category:** {:?}  
+**File:** {}  
+**Line:** {}  
+**Tool:** {}  
+**Confidence:** {:.1}%
+
+**Description:**
+{}
+
+**Impact:**
+This vulnerability could potentially lead to [describe specific impact based on category].
+
+**Recommendation:**
+{}
+
+**References:**
+{}
+
+**CWE:** {}
+
+---
+"#,
+                        severity,
+                        i + 1,
+                        vuln.title,
+                        vuln.severity,
+                        vuln.category,
+                        vuln.file_path,
+                        vuln.line_number.unwrap_or(0),
+                        vuln.tool,
+                        vuln.confidence * 100.0,
+                        vuln.description,
+                        vuln.recommendation.as_ref().unwrap_or(&"Review and fix this issue".to_string()),
+                        vuln.references.join(", "),
+                        vuln.cwe_id.as_ref().unwrap_or(&"N/A".to_string())
+                    ));
+                    
+                    if let Some(code) = &vuln.code_snippet {
+                        report.push_str(&format!("**Code Snippet:**\n```solidity\n{}\n```\n\n", code));
+                    }
+                }
+            }
+        }
+        
+        // Creative probes section
+        if !probes.is_empty() {
+            report.push_str("\n## 🧠 AI-Generated Creative Attack Probes\n\n");
+            
+            for (i, probe) in probes.iter().enumerate() {
+                report.push_str(&format!(r#"
+### Creative Probe #{}: {}
+
+**Severity:** {}  
+**Confidence:** {:.1}%
+
+**Attack Vector:**
+{}
+
+**Potential Impact:**
+{}
+
+**Description:**
+{}
+"#,
+                    i + 1,
+                    probe.title,
+                    probe.severity,
+                    probe.confidence * 100.0,
+                    probe.attack_vector,
+                    probe.impact,
+                    probe.description
+                ));
+                
+                if let Some(poc) = &probe.proof_of_concept {
+                    report.push_str(&format!("\n**Proof of Concept:**\n```solidity\n{}\n```\n", poc));
+                }
+                
+                if let Some(fix) = &probe.recommended_fix {
+                    report.push_str(&format!("\n**Recommended Fix:**\n{}\n", fix));
+                }
+                
+                report.push_str("\n---\n");
+            }
+        }
+        
+        // Analysis metrics
+        report.push_str(&format!(r#"
+## 📊 Analysis Metrics
+
+| Metric | Value |
+|--------|-------|
+| Lines of Code | {} |
+| Functions Analyzed | {} |
+| Complexity Score | {:.2} |
+| Security Score | {:.2}/100 |
+| Coverage Percentage | {:.1}% |
+
+## 🔧 Remediation Checklist
+
+### Immediate Actions Required
+- [ ] Review and fix all critical severity vulnerabilities
+- [ ] Implement proper access controls where missing
+- [ ] Add reentrancy guards to external functions
+- [ ] Validate all user inputs and external calls
+
+### Security Enhancements
+- [ ] Implement circuit breakers for emergency situations
+- [ ] Add comprehensive event logging
+- [ ] Use established security patterns (OpenZeppelin)
+- [ ] Implement proper error handling
+
+### Testing & Deployment
+- [ ] Write comprehensive unit tests
+- [ ] Perform integration testing
+- [ ] Deploy to testnet for additional validation
+- [ ] Set up monitoring and alerting
+
+## 📚 Additional Resources
+
+- [OpenZeppelin Security Guidelines](https://docs.openzeppelin.com/contracts/4.x/security)
+- [Consensys Smart Contract Security Best Practices](https://consensys.github.io/smart-contract-best-practices/)
+- [OWASP Smart Contract Security](https://owasp.org/www-project-smart-contract-security/)
+
+---
+
+*Report generated by SecureChain v{} on {}*
+"#,
+            results.metrics.lines_of_code,
+            results.metrics.functions_analyzed,
+            results.metrics.complexity_score,
+            results.metrics.security_score,
+            results.analysis_summary.coverage_percentage,
+            env!("CARGO_PKG_VERSION"),
+            chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
+        ));
+        
+        Ok(report)
+    }
 
     /// Generate a comprehensive report
     pub async fn generate_comprehensive_report(
