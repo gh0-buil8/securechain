@@ -3,7 +3,7 @@
 //! This plugin provides analysis capabilities for Solidity smart contracts
 //! running on EVM-compatible blockchains like Ethereum, Polygon, Arbitrum, etc.
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use std::process::Command;
 use tokio::process::Command as AsyncCommand;
 
@@ -129,7 +129,7 @@ impl EVMPlugin {
                             }
                         }
                     }
-                    
+
                     // Extract code snippet
                     if let Some(source_mapping) = first_element.get("source_mapping") {
                         if let Some(starting_column) = source_mapping.get("starting_column") {
@@ -140,7 +140,7 @@ impl EVMPlugin {
                                         let line_content = lines[line_num - 1];
                                         let start_col = starting_column.as_u64().unwrap_or(0) as usize;
                                         let end_col = ending_column.as_u64().unwrap_or(line_content.len() as u64) as usize;
-                                        
+
                                         if start_col < line_content.len() && end_col <= line_content.len() {
                                             code_snippet = Some(line_content[start_col..end_col].to_string());
                                         }

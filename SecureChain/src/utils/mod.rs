@@ -7,5 +7,5 @@ pub mod config;
 pub mod simple_config;
 pub mod error;
 
-pub use config::*;
-pub use error::*;
+pub use config::Config;
+pub use error::BugForgeXError;

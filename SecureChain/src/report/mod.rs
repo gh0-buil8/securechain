@@ -6,5 +6,5 @@
 pub mod generator;
 pub mod vulnerability;
 
-pub use generator::*;
-pub use vulnerability::*;
+pub use generator::ReportGenerator;
+pub use vulnerability::Vulnerability;

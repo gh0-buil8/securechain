@@ -3,7 +3,7 @@
 //! This plugin provides analysis capabilities for Ink! smart contracts
 //! used on Polkadot and Substrate-based blockchains.
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use std::process::Command;
 
 use crate::core::parser::ParsedContract;

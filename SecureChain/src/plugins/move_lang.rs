@@ -3,7 +3,7 @@
 //! This plugin provides analysis capabilities for Move smart contracts
 //! used on blockchains like Aptos, Sui, and Diem.
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use std::process::Command;
 
 use crate::core::parser::ParsedContract;

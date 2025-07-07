@@ -3,8 +3,12 @@
 //! This module provides custom error types and error handling
 //! utilities for the application.
 
+use anyhow;
+use reqwest;
+use serde_json;
+
 use thiserror::Error;
-use std::fmt;
+use toml;
 
 /// Main error type for BugForgeX
 #[derive(Error, Debug)]

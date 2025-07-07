@@ -3,10 +3,11 @@
 //! This module provides fuzzing capabilities to discover runtime
 //! vulnerabilities through automated input generation and testing.
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::process::Command;
+
+use std::path::Path;
+use tokio::process::Command;
 use std::time::Duration;
 
 use crate::core::parser::ParsedContract;
@@ -93,21 +94,21 @@ impl FuzzEngine {
         println!("🎲 Starting fuzzing tests for contract: {}", contract.name);
 
         let start_time = std::time::Instant::now();
-        
+
         // Generate property tests from contract analysis
         let property_tests = self.generate_property_tests(contract)?;
-        
+
         // Run Echidna fuzzing
         let echidna_results = self.run_echidna_fuzzing(contract).await?;
-        
+
         // Run custom property tests
         let property_results = self.run_property_tests(contract, &property_tests).await?;
-        
+
         // Generate coverage report
         let coverage_report = self.generate_coverage_report(contract)?;
-        
+
         let duration = start_time.elapsed();
-        
+
         Ok(FuzzingResults {
             contract_name: contract.name.clone(),
             test_cases_run: echidna_results.len() as u32,
@@ -179,11 +180,11 @@ impl FuzzEngine {
         // Create temporary contract file
         let temp_dir = tempfile::tempdir()?;
         let contract_path = temp_dir.path().join(format!("{}.sol", contract.name));
-        
+
         // Generate Echidna configuration
         let echidna_config = self.generate_echidna_config(contract)?;
         let config_path = temp_dir.path().join("echidna.yaml");
-        
+
         std::fs::write(&contract_path, &contract.source_code)?;
         std::fs::write(&config_path, &echidna_config)?;
 
@@ -217,7 +218,7 @@ impl FuzzEngine {
     /// Generate Echidna configuration
     fn generate_echidna_config(&self, contract: &ParsedContract) -> Result<String> {
         let mut config = String::new();
-        
+
         config.push_str("testLimit: 10000\n");
         config.push_str("shrinkLimit: 5000\n");
         config.push_str("seqLen: 100\n");
@@ -230,7 +231,7 @@ impl FuzzEngine {
         config.push_str("corpus: \"corpus\"\n");
         config.push_str("coverage: true\n");
         config.push_str("checkAsserts: true\n");
-        
+
         // Add function filters based on contract analysis
         let mut test_functions = Vec::new();
         for function in &contract.functions {
@@ -238,7 +239,7 @@ impl FuzzEngine {
                 test_functions.push(format!("\"{}\"", function.name));
             }
         }
-        
+
         if !test_functions.is_empty() {
             config.push_str("filterFunctions: [");
             config.push_str(&test_functions.join(", "));
@@ -299,7 +300,7 @@ impl FuzzEngine {
 
         for property in property_tests {
             println!("  🧪 Testing property: {}", property.name);
-            
+
             // For now, create mock results
             // In a real implementation, this would execute the property tests
             let result = PropertyResult {
@@ -308,7 +309,7 @@ impl FuzzEngine {
                 counterexample: None,
                 iterations: 1000,
             };
-            
+
             results.push(result);
         }
 
@@ -320,7 +321,7 @@ impl FuzzEngine {
         let total_lines = contract.source_code.lines().count() as u32;
         let lines_covered = (total_lines as f64 * 0.75) as u32; // Mock 75% coverage
         let coverage_percentage = (lines_covered as f64 / total_lines as f64) * 100.0;
-        
+
         let mut uncovered_lines = Vec::new();
         for i in (lines_covered + 1)..=total_lines {
             uncovered_lines.push(i);

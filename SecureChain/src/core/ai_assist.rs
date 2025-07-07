@@ -6,7 +6,6 @@
 use anyhow::{anyhow, Result};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 use crate::core::analyzer::CreativeProbe;
 use crate::core::parser::ParsedContract;
@@ -63,7 +62,7 @@ impl AIAssistant {
     /// Analyze contract using AI
     pub async fn analyze_contract(&self, contract: &ParsedContract) -> Result<Vec<Vulnerability>> {
         let prompt = self.generate_analysis_prompt(contract)?;
-        
+
         match self.config.ai.backend.as_str() {
             "openai" => self.analyze_with_openai(&prompt, contract).await,
             "anthropic" => self.analyze_with_anthropic(&prompt, contract).await,
@@ -81,7 +80,7 @@ impl AIAssistant {
         generate_poc: bool,
     ) -> Result<Vec<CreativeProbe>> {
         let prompt = self.generate_creative_prompt(contract, creativity, generate_poc)?;
-        
+
         match llm_backend {
             "openai" => self.generate_probes_with_openai(&prompt, contract, generate_poc).await,
             "anthropic" => self.generate_probes_with_anthropic(&prompt, contract, generate_poc).await,
@@ -93,7 +92,7 @@ impl AIAssistant {
     /// Generate analysis prompt for AI
     fn generate_analysis_prompt(&self, contract: &ParsedContract) -> Result<String> {
         let mut prompt = String::new();
-        
+
         prompt.push_str("You are a senior blockchain security auditor specializing in smart contract vulnerabilities. ");
         prompt.push_str("Analyze the following smart contract for security issues, focusing on:\n\n");
         prompt.push_str("1. Reentrancy vulnerabilities\n");
@@ -106,21 +105,21 @@ impl AIAssistant {
         prompt.push_str("8. Timestamp dependence\n");
         prompt.push_str("9. Denial of service vulnerabilities\n");
         prompt.push_str("10. Upgrade mechanism flaws\n\n");
-        
+
         prompt.push_str(&format!("Contract Name: {}\n", contract.name));
         prompt.push_str(&format!("Compiler Version: {}\n", contract.compiler_version));
         prompt.push_str(&format!("Functions: {}\n", contract.functions.len()));
         prompt.push_str(&format!("State Variables: {}\n", contract.state_variables.len()));
-        
+
         if !contract.inheritance.is_empty() {
             prompt.push_str(&format!("Inherits from: {}\n", contract.inheritance.join(", ")));
         }
-        
+
         prompt.push_str("\nContract Source Code:\n");
         prompt.push_str("```solidity\n");
         prompt.push_str(&contract.source_code);
         prompt.push_str("\n```\n\n");
-        
+
         prompt.push_str("Please provide a detailed analysis in JSON format with the following structure:\n");
         prompt.push_str("{\n");
         prompt.push_str("  \"vulnerabilities\": [\n");
@@ -146,11 +145,11 @@ impl AIAssistant {
     /// Generate creative prompt for vulnerability discovery
     fn generate_creative_prompt(&self, contract: &ParsedContract, creativity: &str, generate_poc: bool) -> Result<String> {
         let mut prompt = String::new();
-        
+
         prompt.push_str("You are a creative blockchain security researcher and white-hat hacker. ");
         prompt.push_str("Your task is to think outside the box and discover novel attack vectors ");
         prompt.push_str("and edge cases that traditional static analysis tools might miss.\n\n");
-        
+
         match creativity {
             "low" => {
                 prompt.push_str("Focus on well-known vulnerability patterns and common mistakes.\n");
@@ -166,7 +165,7 @@ impl AIAssistant {
                 prompt.push_str("Explore creative vulnerability scenarios.\n");
             }
         }
-        
+
         prompt.push_str("\nConsider these creative attack scenarios:\n");
         prompt.push_str("1. Economic attacks (flash loans, arbitrage, market manipulation)\n");
         prompt.push_str("2. Governance attacks (vote manipulation, proposal griefing)\n");
@@ -178,16 +177,16 @@ impl AIAssistant {
         prompt.push_str("8. Oracle manipulation and price feed attacks\n");
         prompt.push_str("9. Multi-block attacks and state manipulation\n");
         prompt.push_str("10. Upgrade mechanism exploitation\n\n");
-        
+
         prompt.push_str(&format!("Contract to analyze: {}\n", contract.name));
         prompt.push_str("```solidity\n");
         prompt.push_str(&contract.source_code);
         prompt.push_str("\n```\n\n");
-        
+
         if generate_poc {
             prompt.push_str("For each vulnerability, provide a proof-of-concept exploit code.\n");
         }
-        
+
         prompt.push_str("Provide your analysis in JSON format with creative probes:\n");
         prompt.push_str("{\n");
         prompt.push_str("  \"probes\": [\n");
@@ -239,7 +238,7 @@ impl AIAssistant {
             .await?;
 
         let response_json: serde_json::Value = response.json().await?;
-        
+
         if let Some(content) = response_json["choices"][0]["message"]["content"].as_str() {
             self.parse_ai_analysis_response(content, contract)
         } else {
@@ -273,7 +272,7 @@ impl AIAssistant {
             .await?;
 
         let response_json: serde_json::Value = response.json().await?;
-        
+
         if let Some(content) = response_json["content"][0]["text"].as_str() {
             self.parse_ai_analysis_response(content, contract)
         } else {
@@ -300,7 +299,7 @@ impl AIAssistant {
             .await?;
 
         let response_json: serde_json::Value = response.json().await?;
-        
+
         if let Some(content) = response_json["response"].as_str() {
             self.parse_ai_analysis_response(content, contract)
         } else {
@@ -343,7 +342,7 @@ impl AIAssistant {
             .await?;
 
         let response_json: serde_json::Value = response.json().await?;
-        
+
         if let Some(content) = response_json["choices"][0]["message"]["content"].as_str() {
             self.parse_creative_probe_response(content)
         } else {
@@ -382,7 +381,7 @@ impl AIAssistant {
             .await?;
 
         let response_json: serde_json::Value = response.json().await?;
-        
+
         if let Some(content) = response_json["content"][0]["text"].as_str() {
             self.parse_creative_probe_response(content)
         } else {
@@ -414,7 +413,7 @@ impl AIAssistant {
             .await?;
 
         let response_json: serde_json::Value = response.json().await?;
-        
+
         if let Some(content) = response_json["response"].as_str() {
             self.parse_creative_probe_response(content)
         } else {
@@ -431,7 +430,7 @@ impl AIAssistant {
             let json_content = &content[json_start..];
             if let Some(json_end) = json_content.rfind('}') {
                 let json_str = &json_content[..=json_end];
-                
+
                 if let Ok(analysis_response) = serde_json::from_str::<AIAnalysisResponse>(json_str) {
                     for ai_vuln in analysis_response.vulnerabilities {
                         vulnerabilities.push(Vulnerability {
@@ -466,7 +465,7 @@ impl AIAssistant {
             let json_content = &content[json_start..];
             if let Some(json_end) = json_content.rfind('}') {
                 let json_str = &json_content[..=json_end];
-                
+
                 if let Ok(probe_response) = serde_json::from_str::<serde_json::Value>(json_str) {
                     if let Some(probe_array) = probe_response["probes"].as_array() {
                         for probe_obj in probe_array {

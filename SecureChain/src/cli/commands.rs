@@ -246,7 +246,7 @@ async fn execute_analyze_command(
         }
         "markdown" => {
             let report_gen = ReportGenerator::new(config);
-            let markdown_output = report_gen.generate_markdown_report(&results)?;
+            let markdown_output = report_gen.generate_markdown_report_from_results(&results)?;
             if let Some(output_path) = output {
                 std::fs::write(&output_path, markdown_output)?;
                 println!("Report saved to {}", output_path.display());
