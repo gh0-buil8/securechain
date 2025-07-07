@@ -27,3 +27,21 @@ args = "cd SecureChain && cargo build --release"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd SecureChain && ./target/release/securechain analyze -i test_contracts/vulnerable_sample.sol -t evm -d standard -o markdown"
+
+[[workflows.workflow]]
+name = "Quick Fuzz"
+author = 44735627
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd SecureChain && ./target/release/securechain audit -i test_contracts/vulnerable_sample.sol -t evm --fuzz -o quick_fuzz_results"
+
+[[workflows.workflow]]
+name = "Deep Analysis"
+author = 44735627
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd SecureChain && ./target/release/securechain audit -i test_contracts/vulnerable_sample.sol -t evm --ai --fuzz -o deep_analysis_results"
