@@ -6,7 +6,6 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use std::path::Path;
 use tokio::process::Command;
 use std::time::Duration;
 
@@ -195,7 +194,8 @@ impl FuzzEngine {
             .arg(&config_path)
             .arg("--format")
             .arg("json")
-            .output();
+            .output()
+            .await;
 
         match output {
             Ok(cmd_output) => {

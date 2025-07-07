@@ -249,7 +249,7 @@ This comprehensive security audit employed multiple analysis techniques:
         }
         
         for severity in &["Critical", "High", "Medium", "Low", "Info"] {
-            if let Some(vulns) = by_severity.get(severity) {
+            if let Some(vulns) = by_severity.get(&severity.to_string()) {
                 report.push_str(&format!("\n### {} Severity Issues ({})\n\n", severity, vulns.len()));
                 
                 for (i, vuln) in vulns.iter().enumerate() {
