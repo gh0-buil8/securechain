@@ -292,7 +292,7 @@ impl FuzzEngine {
     /// Run custom property tests
     async fn run_property_tests(
         &self,
-        contract: &ParsedContract,
+        _contract: &ParsedContract,
         property_tests: &[PropertyTest],
     ) -> Result<Vec<PropertyResult>> {
         let mut results = Vec::new();

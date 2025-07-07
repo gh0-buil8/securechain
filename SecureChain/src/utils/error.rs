@@ -4,6 +4,7 @@
 //! utilities for the application.
 
 use thiserror::Error;
+use std::fmt;
 
 /// Main error type for BugForgeX
 #[derive(Error, Debug)]
@@ -75,6 +76,30 @@ pub enum BugForgeXError {
     /// Generic errors
     #[error("Error: {message}")]
     Generic { message: String },
+}
+
+impl fmt::Display for BugForgeXError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            BugForgeXError::Io(err) => write!(f, "IO error: {}", err),
+            BugForgeXError::Json(err) => write!(f, "JSON error: {}", err),
+            BugForgeXError::Toml(err) => write!(f, "TOML error: {}", err),
+            BugForgeXError::Http(err) => write!(f, "HTTP error: {}", err),
+            BugForgeXError::Regex(err) => write!(f, "Regex error: {}", err),
+            BugForgeXError::Config { message } => write!(f, "Configuration error: {}", message),
+            BugForgeXError::Plugin { plugin, message } => write!(f, "Plugin error: {}: {}", plugin, message),
+            BugForgeXError::Analysis { message } => write!(f, "Analysis error: {}", message),
+            BugForgeXError::ContractFetch { message } => write!(f, "Contract fetch error: {}", message),
+            BugForgeXError::ContractParse { message } => write!(f, "Contract parse error: {}", message),
+            BugForgeXError::AiAssistant { message } => write!(f, "AI assistant error: {}", message),
+            BugForgeXError::ReportGeneration { message } => write!(f, "Report generation error: {}", message),
+            BugForgeXError::ToolExecution { tool, message } => write!(f, "Tool execution error: {}: {}", tool, message),
+            BugForgeXError::Network { message } => write!(f, "Network error: {}", message),
+            BugForgeXError::Authentication { message } => write!(f, "Authentication error: {}", message),
+            BugForgeXError::RateLimit { message } => write!(f, "Rate limit exceeded: {}", message),
+            BugForgeXError::Generic { message } => write!(f, "Error: {}", message),
+        }
+    }
 }
 
 impl BugForgeXError {

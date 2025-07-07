@@ -375,7 +375,7 @@ impl ContractParser {
         let mut brace_count = 0;
         let mut started = false;
 
-        for (i, line) in lines.iter().enumerate().skip(start_line) {
+        for (_i, line) in lines.iter().enumerate().skip(start_line) {
             for ch in line.chars() {
                 if ch == '{' {
                     brace_count += 1;

@@ -38,7 +38,7 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     // Load configuration
-    let config = Config::load_or_default()?;
+    let config = Config::load().unwrap_or_else(|_| Config::default());
 
     // Execute the command
     match execute_command(cli, config).await {

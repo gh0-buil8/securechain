@@ -205,7 +205,7 @@ impl ContractFetcher {
     }
 
     /// Fetch contracts from local file system
-    async fn fetch_from_local(&self, path: &str) -> Result<Vec<ContractInfo>> {
+    pub async fn fetch_from_local(&self, path: &str) -> Result<Vec<ContractInfo>> {
         let path = Path::new(path);
         let mut contracts = Vec::new();
 

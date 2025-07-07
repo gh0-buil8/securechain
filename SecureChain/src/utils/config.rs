@@ -385,19 +385,19 @@ impl Config {
     /// Load configuration overrides from environment variables
     fn load_from_env(mut self) -> Result<Self> {
         // API Keys
-        if let Ok(openai_key) = std::env::var("OPENAI_API_KEY") {
+        if let Ok(_openai_key) = std::env::var("OPENAI_API_KEY") {
             log::debug!("Loaded OpenAI API key from environment");
         }
         
-        if let Ok(anthropic_key) = std::env::var("ANTHROPIC_API_KEY") {
+        if let Ok(_anthropic_key) = std::env::var("ANTHROPIC_API_KEY") {
             log::debug!("Loaded Anthropic API key from environment");
         }
         
-        if let Ok(etherscan_key) = std::env::var("ETHERSCAN_API_KEY") {
+        if let Ok(_etherscan_key) = std::env::var("ETHERSCAN_API_KEY") {
             log::debug!("Loaded Etherscan API key from environment");
         }
         
-        if let Ok(github_token) = std::env::var("GITHUB_TOKEN") {
+        if let Ok(_github_token) = std::env::var("GITHUB_TOKEN") {
             log::debug!("Loaded GitHub token from environment");
         }
         

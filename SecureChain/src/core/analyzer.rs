@@ -343,7 +343,7 @@ impl AnalysisEngine {
     }
 
     /// Run Move Prover analysis
-    async fn run_move_prover(&self, contract: &ParsedContract) -> Result<Vec<Vulnerability>> {
+    async fn run_move_prover(&self, _contract: &ParsedContract) -> Result<Vec<Vulnerability>> {
         println!("  📐 Running Move Prover analysis...");
         
         // TODO: Implement Move Prover integration
@@ -351,7 +351,7 @@ impl AnalysisEngine {
     }
 
     /// Run Cairo analysis
-    async fn run_cairo_analysis(&self, contract: &ParsedContract) -> Result<Vec<Vulnerability>> {
+    async fn run_cairo_analysis(&self, _contract: &ParsedContract) -> Result<Vec<Vulnerability>> {
         println!("  🏛️  Running Cairo analysis...");
         
         // TODO: Implement Cairo analysis integration
@@ -389,7 +389,7 @@ impl AnalysisEngine {
 
         // Extract line number and file path
         let mut line_number = None;
-        let mut file_path = contract_name.to_string();
+        let file_path = contract_name.to_string();
 
         if let Some(elements) = detector.get("elements") {
             if let Some(element_array) = elements.as_array() {
@@ -552,7 +552,7 @@ impl AnalysisEngine {
             return 100.0;
         }
 
-        let mut score = 100.0;
+        let mut score: f64 = 100.0;
         
         for vuln in vulnerabilities {
             let penalty = match vuln.severity.as_str() {

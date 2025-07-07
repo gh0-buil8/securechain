@@ -249,7 +249,7 @@ This comprehensive security audit employed multiple analysis techniques:
         }
         
         for severity in &["Critical", "High", "Medium", "Low", "Info"] {
-            if let Some(vulns) = by_severity.get(severity) {
+            if let Some(vulns) = by_severity.get(*severity) {
                 report.push_str(&format!("\n### {} Severity Issues ({})\n\n", severity, vulns.len()));
                 
                 for (i, vuln) in vulns.iter().enumerate() {
@@ -420,7 +420,7 @@ This vulnerability could potentially lead to [describe specific impact based on 
     }
 
     /// Generate a markdown report from analysis results
-    pub fn generate_markdown_report(&self, results: &AnalysisResults) -> Result<String> {
+    pub fn generate_markdown_report_from_results(&self, results: &AnalysisResults) -> Result<String> {
         let report = self.create_comprehensive_report(results, true)?;
         self.generate_markdown_report(&report)
     }
